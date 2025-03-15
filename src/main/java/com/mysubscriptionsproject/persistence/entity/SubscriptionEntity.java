@@ -27,8 +27,4 @@ public class SubscriptionEntity {
     @ManyToMany
     private List<ProfileEntity> profileEntities;
 
-    // exemples features :
-    // calculer coût par mois de tous les abonnements
-    // calculer proportion des abonnements par rapport au salaire fourni en entrée
-
 }
