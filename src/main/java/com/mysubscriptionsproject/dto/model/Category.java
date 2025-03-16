@@ -1,4 +1,4 @@
-package com.mysubscriptionsproject.core.model;
+package com.mysubscriptionsproject.dto.model;
 
 public enum Category {
 
@@ -8,5 +8,5 @@ public enum Category {
     PHONE,
     SOCIAL_MEDIA,
     SPORT,
-    OTHER;
+    OTHER
 }

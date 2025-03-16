@@ -8,6 +8,7 @@ public class MySubscriptionsApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(MySubscriptionsApplication.class, args);
+		System.out.println("Console h2 : " + "http://localhost:8080/h2-console/");
 	}
 
 }

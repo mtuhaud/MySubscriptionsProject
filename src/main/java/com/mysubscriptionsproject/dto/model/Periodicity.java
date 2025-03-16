@@ -1,4 +1,4 @@
-package com.mysubscriptionsproject.core.model;
+package com.mysubscriptionsproject.dto.model;
 
 public enum Periodicity {
 
@@ -6,5 +6,5 @@ public enum Periodicity {
     ANNUAL,
     MONTHLY,
     WEEKLY,
-    OTHER;
+    OTHER
 }
