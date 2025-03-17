@@ -4,6 +4,8 @@ import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(value = "api/v1/users")
 public class UserController {
@@ -23,4 +25,7 @@ public class UserController {
     public void addUser(@RequestBody UserDto user) {
         this.userService.addUser(user);
     }
+
+    @GetMapping()
+    public List<UserDto> getUsers() { return this.userService.getAllUsers(); }
 }

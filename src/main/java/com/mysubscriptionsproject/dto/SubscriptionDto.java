@@ -11,4 +11,5 @@ public class SubscriptionDto {
     private double price;
     private Category category;
     private Formule formule;
+    private UserDto user;
 }
