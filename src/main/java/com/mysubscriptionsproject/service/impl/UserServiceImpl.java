@@ -6,6 +6,7 @@ import com.mysubscriptionsproject.entity.SubscriptionEntity;
 import com.mysubscriptionsproject.entity.UserEntity;
 import com.mysubscriptionsproject.repository.UserRepository;
 import com.mysubscriptionsproject.service.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -23,9 +24,10 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUser(Long id) {
-        var entity = this.userRepository.findById(id).orElse(null);
-        UserDto user = new UserDto();
+        var entity = this.userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
         // TODO : gérer prochainement nullpointer avec une classe @ControllerAdvice
+        UserDto user = new UserDto();
         user.setName(entity.getName());
 
         var subs = entity.getSubscriptions().stream().map(
@@ -90,7 +92,33 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(Long id) {
         this.userRepository.findById(id).ifPresent(this.userRepository::delete);
+    }
+
+    @Override
+    public void updateUser(UserDto user, Long id) {
+        var userEntity = this.userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        userEntity.setName(user.getName());
+        userEntity.getSubscriptions().clear();
+        for(SubscriptionDto subDto : user.getSubscriptions()){
+            userEntity.getSubscriptions().add(mapSubDtoToEntity(subDto,userEntity));
+        }
+        this.userRepository.save(userEntity);
+    }
+
+
+    // TODO: créer classe mapping et mettre en place MapStruct
+    private SubscriptionEntity mapSubDtoToEntity(SubscriptionDto subDto, UserEntity userEntity) {
+        var subEntity = new SubscriptionEntity();
+        subEntity.setName(subDto.getName());
+        subEntity.setPrice(subDto.getPrice());
+        subEntity.setFormule(subDto.getFormule());
+        subEntity.setCategory(subDto.getCategory());
+        subEntity.setUser(userEntity);
+        return subEntity;
+
     }
 }
