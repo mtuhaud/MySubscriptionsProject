@@ -98,6 +98,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateUser(UserDto user, Long id) {
         var userEntity = this.userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
