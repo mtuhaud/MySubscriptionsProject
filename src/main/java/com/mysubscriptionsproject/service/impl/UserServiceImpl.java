@@ -30,17 +30,10 @@ public class UserServiceImpl implements UserService {
         UserDto user = new UserDto();
         user.setName(entity.getName());
 
-        var subs = entity.getSubscriptions().stream().map(
-                sub -> {
-                    var subDto = new SubscriptionDto();
-                    subDto.setName(sub.getName());
-                    subDto.setPrice(sub.getPrice());
-                    subDto.setFormule(sub.getFormule());
-                    subDto.setCategory(sub.getCategory());
-                    return subDto;
-                }
-        ).toList();
-
+        if(entity.getSubscriptions() == null) {
+            throw new RuntimeException("Un abonnement doit être présent");
+        }
+        var subs = mapSubsEntityToSubsDto(entity.getSubscriptions());
         user.setSubscriptions(subs);
 
         return user;
@@ -50,23 +43,7 @@ public class UserServiceImpl implements UserService {
     // TODO : créer un DTO uniquement pour cet appel sans user dans la souscription
     public List<UserDto> getAllUsers() {
         var usersEntity = this.userRepository.findAll();
-        return usersEntity.stream().map(
-                user -> {
-                        var userDto = new UserDto();
-                        userDto.setName(user.getName());
-                        List<SubscriptionDto> subscriptionDto = new ArrayList<>();
-                        for(SubscriptionEntity subsEntity : user.getSubscriptions()) {
-                            var subDto = new SubscriptionDto();
-                            subDto.setName(subsEntity.getName());
-                            subDto.setPrice(subsEntity.getPrice());
-                            subDto.setFormule(subsEntity.getFormule());
-                            subDto.setCategory(subsEntity.getCategory());
-                            subscriptionDto.add(subDto);
-                        }
-                        userDto.setSubscriptions(subscriptionDto);
-                        return userDto;
-                }
-        ).toList();
+        return mapUserEntityToUsersDto(usersEntity);
     }
 
     @Override
@@ -74,17 +51,7 @@ public class UserServiceImpl implements UserService {
     public void addUser(UserDto user) {
         var entity = new UserEntity();
         entity.setName(user.getName());
-        var subsEntity = user.getSubscriptions().stream().map(
-                sub -> {
-                    var subEntity = new SubscriptionEntity();
-                    subEntity.setName(sub.getName());
-                    subEntity.setPrice(sub.getPrice());
-                    subEntity.setFormule(sub.getFormule());
-                    subEntity.setCategory(sub.getCategory());
-                    subEntity.setUser(entity);
-                    return subEntity;
-                }
-        ).toList();
+        var subsEntity = mapSubsDtoToSubsEntity(user.getSubscriptions(), entity);
 
         entity.setSubscriptions(subsEntity);
 
@@ -111,8 +78,42 @@ public class UserServiceImpl implements UserService {
     }
 
 
+
     // TODO: créer classe mapping et mettre en place MapStruct
-    private SubscriptionEntity mapSubDtoToEntity(SubscriptionDto subDto, UserEntity userEntity) {
+
+    private static List<SubscriptionDto> mapSubsEntityToSubsDto(List<SubscriptionEntity> subsEntity) {
+        return subsEntity.stream().map(
+                sub -> {
+                    var subDto = new SubscriptionDto();
+                    subDto.setName(sub.getName());
+                    subDto.setPrice(sub.getPrice());
+                    subDto.setFormule(sub.getFormule());
+                    subDto.setCategory(sub.getCategory());
+                    return subDto;
+                }
+        ).toList();
+    }
+    private static List<UserDto> mapUserEntityToUsersDto(List<UserEntity> usersEntity) {
+        return usersEntity.stream().map(
+                user -> {
+                    var userDto = new UserDto();
+                    userDto.setName(user.getName());
+                    List<SubscriptionDto> subscriptionDto = new ArrayList<>();
+                    for (SubscriptionEntity subsEntity : user.getSubscriptions()) {
+                        var subDto = new SubscriptionDto();
+                        subDto.setName(subsEntity.getName());
+                        subDto.setPrice(subsEntity.getPrice());
+                        subDto.setFormule(subsEntity.getFormule());
+                        subDto.setCategory(subsEntity.getCategory());
+                        subscriptionDto.add(subDto);
+                    }
+                    userDto.setSubscriptions(subscriptionDto);
+                    return userDto;
+                }
+        ).toList();
+    }
+
+    private static SubscriptionEntity mapSubDtoToEntity(SubscriptionDto subDto, UserEntity userEntity) {
         var subEntity = new SubscriptionEntity();
         subEntity.setName(subDto.getName());
         subEntity.setPrice(subDto.getPrice());
@@ -121,5 +122,19 @@ public class UserServiceImpl implements UserService {
         subEntity.setUser(userEntity);
         return subEntity;
 
+    }
+
+    private static List<SubscriptionEntity> mapSubsDtoToSubsEntity(List<SubscriptionDto> subsDto, UserEntity entity) {
+        return subsDto.stream().map(
+                sub -> {
+                    var subEntity = new SubscriptionEntity();
+                    subEntity.setName(sub.getName());
+                    subEntity.setPrice(sub.getPrice());
+                    subEntity.setFormule(sub.getFormule());
+                    subEntity.setCategory(sub.getCategory());
+                    subEntity.setUser(entity);
+                    return subEntity;
+                }
+        ).toList();
     }
 }
