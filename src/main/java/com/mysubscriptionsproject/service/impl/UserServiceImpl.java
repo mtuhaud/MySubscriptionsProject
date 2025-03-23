@@ -27,16 +27,11 @@ public class UserServiceImpl implements UserService {
         var entity = this.userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
         // TODO : gérer prochainement nullpointer avec une classe @ControllerAdvice
-        UserDto user = new UserDto();
-        user.setName(entity.getName());
 
         if(entity.getSubscriptions() == null) {
             throw new RuntimeException("Un abonnement doit être présent");
         }
-        var subs = mapSubsEntityToSubsDto(entity.getSubscriptions());
-        user.setSubscriptions(subs);
-
-        return user;
+        return mapUserEntityToUserDto(entity);
     }
 
     @Override
@@ -49,19 +44,14 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addUser(UserDto user) {
-        var entity = new UserEntity();
-        entity.setName(user.getName());
-        var subsEntity = mapSubsDtoToSubsEntity(user.getSubscriptions(), entity);
-
-        entity.setSubscriptions(subsEntity);
-
+        var entity = mapUserDtoToUserEntity(user);
         this.userRepository.save(entity);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        this.userRepository.findById(id).ifPresent(this.userRepository::delete);
+        this.userRepository.findById(id).ifPresent(this.userRepository::    delete);
     }
 
     @Override
@@ -69,20 +59,26 @@ public class UserServiceImpl implements UserService {
     public void updateUser(UserDto user, Long id) {
         var userEntity = this.userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        userEntity.setName(user.getName());
-        userEntity.getSubscriptions().clear();
-        for(SubscriptionDto subDto : user.getSubscriptions()){
-            userEntity.getSubscriptions().add(mapSubDtoToEntity(subDto,userEntity));
-        }
+        mapUpdateUser(user, userEntity);
         this.userRepository.save(userEntity);
     }
 
+    private static void mapUpdateUser(UserDto user, UserEntity userEntity) {
+        userEntity.setName(user.getName());
+        userEntity.getSubscriptions().clear();
+        for(SubscriptionDto subDto : user.getSubscriptions()){
+            userEntity.getSubscriptions().add(mapSubDtoToEntity(subDto, userEntity));
+        }
+    }
 
 
     // TODO: créer classe mapping et mettre en place MapStruct
 
-    private static List<SubscriptionDto> mapSubsEntityToSubsDto(List<SubscriptionEntity> subsEntity) {
-        return subsEntity.stream().map(
+    private static UserDto mapUserEntityToUserDto(UserEntity entity) {
+        UserDto user = new UserDto();
+        user.setName(entity.getName());
+
+        var subs = entity.getSubscriptions().stream().map(
                 sub -> {
                     var subDto = new SubscriptionDto();
                     subDto.setName(sub.getName());
@@ -92,6 +88,10 @@ public class UserServiceImpl implements UserService {
                     return subDto;
                 }
         ).toList();
+
+        user.setSubscriptions(subs);
+
+        return user;
     }
     private static List<UserDto> mapUserEntityToUsersDto(List<UserEntity> usersEntity) {
         return usersEntity.stream().map(
@@ -124,8 +124,10 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    private static List<SubscriptionEntity> mapSubsDtoToSubsEntity(List<SubscriptionDto> subsDto, UserEntity entity) {
-        return subsDto.stream().map(
+    private static UserEntity mapUserDtoToUserEntity(UserDto userDto) {
+        var entity = new UserEntity();
+        entity.setName(userDto.getName());
+        var  subsEntity = userDto.getSubscriptions().stream().map(
                 sub -> {
                     var subEntity = new SubscriptionEntity();
                     subEntity.setName(sub.getName());
@@ -136,5 +138,7 @@ public class UserServiceImpl implements UserService {
                     return subEntity;
                 }
         ).toList();
+        entity.setSubscriptions(subsEntity);
+        return entity;
     }
 }
