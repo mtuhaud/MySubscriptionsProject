@@ -1,12 +1,13 @@
 package com.mysubscriptionsproject.service.impl;
 
+import com.mysubscriptionsproject.common.exception.EntityNotFoundException;
+import com.mysubscriptionsproject.common.exception.SubscriptionException;
 import com.mysubscriptionsproject.dto.SubscriptionDto;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.entity.SubscriptionEntity;
 import com.mysubscriptionsproject.entity.UserEntity;
 import com.mysubscriptionsproject.repository.UserRepository;
 import com.mysubscriptionsproject.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
@@ -25,11 +26,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto getUser(Long id) {
         var entity = this.userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
-        // TODO : gérer prochainement nullpointer avec une classe @ControllerAdvice
+                .orElseThrow(() -> new EntityNotFoundException(id));
 
         if(entity.getSubscriptions() == null) {
-            throw new RuntimeException("Un abonnement doit être présent");
+            throw new SubscriptionException("Un abonnement doit être présent");
         }
         return mapUserEntityToUserDto(entity);
     }
@@ -44,6 +44,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addUser(UserDto user) {
+        if(user == null) {
+            throw new SubscriptionException("Utilisateur incomplet");
+        }
         var entity = mapUserDtoToUserEntity(user);
         this.userRepository.save(entity);
     }
@@ -51,29 +54,19 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        this.userRepository.findById(id).ifPresent(this.userRepository::    delete);
+        this.userRepository.findById(id).ifPresent(this.userRepository::delete);
     }
 
     @Override
     @Transactional
     public void updateUser(UserDto user, Long id) {
         var userEntity = this.userRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException(id));
         mapUpdateUser(user, userEntity);
         this.userRepository.save(userEntity);
     }
 
-    private static void mapUpdateUser(UserDto user, UserEntity userEntity) {
-        userEntity.setName(user.getName());
-        userEntity.getSubscriptions().clear();
-        for(SubscriptionDto subDto : user.getSubscriptions()){
-            userEntity.getSubscriptions().add(mapSubDtoToEntity(subDto, userEntity));
-        }
-    }
-
-
     // TODO: créer classe mapping et mettre en place MapStruct
-
     private static UserDto mapUserEntityToUserDto(UserEntity entity) {
         UserDto user = new UserDto();
         user.setName(entity.getName());
@@ -140,5 +133,13 @@ public class UserServiceImpl implements UserService {
         ).toList();
         entity.setSubscriptions(subsEntity);
         return entity;
+    }
+
+    private static void mapUpdateUser(UserDto user, UserEntity userEntity) {
+        userEntity.setName(user.getName());
+        userEntity.getSubscriptions().clear();
+        for(SubscriptionDto subDto : user.getSubscriptions()){
+            userEntity.getSubscriptions().add(mapSubDtoToEntity(subDto, userEntity));
+        }
     }
 }

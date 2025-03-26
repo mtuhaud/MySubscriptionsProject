@@ -1,11 +1,12 @@
 package com.mysubscriptionsproject.service.impl;
 
+import com.mysubscriptionsproject.common.exception.EntityNotFoundException;
+import com.mysubscriptionsproject.common.exception.SubscriptionException;
 import com.mysubscriptionsproject.dto.SubscriptionDto;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.entity.SubscriptionEntity;
 import com.mysubscriptionsproject.entity.UserEntity;
 import com.mysubscriptionsproject.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -107,6 +108,14 @@ public class UserServiceImplTest {
 
         UserEntity userEntity = userEntityArgumentCaptor.getValue();
         assertThat(userEntity.getName()).isEqualTo("Polo");
+    }
+
+    @Test
+    void testAddUser_withSubscriptionException() throws EntityNotFoundException {
+        SubscriptionException exception = assertThrows(SubscriptionException.class, ()
+        -> userService.addUser(null));
+        assertThat(exception.getMessage()).isEqualTo("Utilisateur incomplet");
+
     }
 
     @Test
