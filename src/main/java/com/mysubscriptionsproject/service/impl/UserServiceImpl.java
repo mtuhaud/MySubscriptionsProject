@@ -28,9 +28,6 @@ public class UserServiceImpl implements UserService {
         var entity = this.userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
 
-        if(entity.getSubscriptions() == null) {
-            throw new SubscriptionException("Un abonnement doit être présent");
-        }
         return mapUserEntityToUserDto(entity);
     }
 
@@ -44,8 +41,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void addUser(UserDto user) {
-        if(user == null) {
-            throw new SubscriptionException("Utilisateur incomplet");
+        if(user.getName() == null) {
+            throw new SubscriptionException("Un nom d'utilisateur doit être renseigné");
+        }
+        if(user.getSubscriptions() == null) {
+            throw new SubscriptionException("Un abonnement doit être présent");
         }
         var entity = mapUserDtoToUserEntity(user);
         this.userRepository.save(entity);

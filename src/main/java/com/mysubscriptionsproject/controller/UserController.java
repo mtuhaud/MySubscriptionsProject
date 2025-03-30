@@ -3,7 +3,6 @@ package com.mysubscriptionsproject.controller;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.service.UserService;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -18,6 +17,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserDto getUser(@PathVariable("id") Long id) {
+
         return this.userService.getUser(id);
     }
 

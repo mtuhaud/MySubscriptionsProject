@@ -59,20 +59,6 @@ public class UserServiceImplTest {
     }
 
     @Test
-    void testGetUser_withNoSubcriptionException() throws RuntimeException {
-        var id = 1L;
-        var entity = new UserEntity();
-        entity.setId(id);
-        entity.setName("Toto");
-
-        when(userRepository.findById(id)).thenReturn(Optional.of(entity));
-
-        RuntimeException exception = assertThrows(RuntimeException.class,
-                () -> userService.getUser(id));
-                assertThat(exception.getMessage()).isEqualTo("Un abonnement doit être présent");
-    }
-
-    @Test
     void testUpdateUser() {
         var id = 1L;
         var userDto = new UserDto();
@@ -113,9 +99,18 @@ public class UserServiceImplTest {
     @Test
     void testAddUser_withSubscriptionException() throws EntityNotFoundException {
         SubscriptionException exception = assertThrows(SubscriptionException.class, ()
-        -> userService.addUser(null));
-        assertThat(exception.getMessage()).isEqualTo("Utilisateur incomplet");
+        -> userService.addUser(new UserDto()));
+        assertThat(exception.getMessage()).isEqualTo("Un nom d'utilisateur doit être renseigné");
 
+    }
+
+    @Test
+    void testAddUser_withNoSubcriptionException() throws RuntimeException {
+        var userDto = new UserDto();
+        userDto.setName("Polo");
+        RuntimeException exception = assertThrows(SubscriptionException.class,
+                () -> userService.addUser(userDto));
+        assertThat(exception.getMessage()).isEqualTo("Un abonnement doit être présent");
     }
 
     @Test

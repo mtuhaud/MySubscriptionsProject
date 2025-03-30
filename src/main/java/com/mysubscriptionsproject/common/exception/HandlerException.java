@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class HandlerException {
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorBuilder> handleException(EntityNotFoundException exception) {
+    public ResponseEntity<ErrorBuilder> handleEntityNotFoundException(EntityNotFoundException exception) {
         ErrorBuilder error = ErrorBuilder.builder()
                 .httpStatus(HttpStatus.NOT_FOUND.value())
                 .message(exception.getMessage())
@@ -19,4 +19,16 @@ public class HandlerException {
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND.value()).body(error);
     }
+
+    @ExceptionHandler(SubscriptionException.class)
+    public ResponseEntity<ErrorBuilder> handleSubscriptionException(SubscriptionException exception) {
+        ErrorBuilder error = ErrorBuilder.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST.value())
+                .message(exception.getMessage())
+                .timeStamp(LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST.value()).body(error);
+    }
+
+
 }

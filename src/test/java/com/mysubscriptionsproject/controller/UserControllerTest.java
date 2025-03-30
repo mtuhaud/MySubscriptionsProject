@@ -1,46 +1,36 @@
 package com.mysubscriptionsproject.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mysubscriptionsproject.common.exception.EntityNotFoundException;
+import com.mysubscriptionsproject.common.exception.SubscriptionException;
 import com.mysubscriptionsproject.dto.SubscriptionDto;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.dto.model.Category;
 import com.mysubscriptionsproject.service.UserService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(UserController.class)
 public class UserControllerTest {
 
+    @Autowired
     private MockMvc mockMvc;
 
-    @Mock
+    @MockitoBean
     private UserService userService;
 
-    @InjectMocks
-    private UserController userController;
-
     private final ObjectMapper mapper = new ObjectMapper();
-
-    @BeforeEach
-    public void setup() {
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-    }
 
     @Test
     void testGetUser() throws Exception {
@@ -60,6 +50,49 @@ public class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(userDto.getName()))
                 .andExpect(jsonPath("$.subscriptions[0].category").value("MUSIC"));
+
+    }
+
+    @Test
+    void testGetUser_EntityNotFoundException() throws Exception {
+        var id = 1L;
+
+        when(userService.getUser(1L)).thenThrow(new EntityNotFoundException(id));
+
+        mockMvc.perform(get("/api/v1/users/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("Entity not found: " + id));
+
+    }
+
+    @Test
+    void testAddUser_SubscriptionException_withNoSubscription() throws Exception {
+        UserDto userDto = new UserDto();
+        userDto.setName("Max");
+        userDto.setSubscriptions(null);
+
+        doThrow(new SubscriptionException("Un abonnement doit être présent")).when(userService).addUser(any(UserDto.class));
+
+        mockMvc.perform(post("/api/v1/users" )
+                        .content(mapper.writeValueAsString(userDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Un abonnement doit être présent"));
+
+    }
+
+    @Test
+    void testAddUser_SubscriptionException_withNullUserName() throws Exception {
+        UserDto userDto = new UserDto();
+
+        doThrow(new SubscriptionException("Un nom d'utilisateur doit être renseigné")).when(userService).addUser(userDto);
+
+        mockMvc.perform(post("/api/v1/users" )
+                        .content(mapper.writeValueAsString(userDto))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Un nom d'utilisateur doit être renseigné"));
 
     }
 
