@@ -11,7 +11,6 @@ import com.mysubscriptionsproject.repository.UserRepository;
 import com.mysubscriptionsproject.service.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -26,7 +25,6 @@ public class UserServiceImpl implements UserService {
         this.userMapper = userMapper;
     }
 
-
     @Override
     public UserDto getUser(Long id) {
         var entity = this.userRepository.findById(id)
@@ -36,10 +34,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    // TODO : créer un DTO uniquement pour cet appel sans user dans la souscription
     public List<UserDto> getAllUsers() {
         var usersEntity = this.userRepository.findAll();
-        return mapUserEntityToUsersDto(usersEntity);
+        return userMapper.toUsersDto(usersEntity);
     }
 
     @Override
@@ -51,8 +48,8 @@ public class UserServiceImpl implements UserService {
         if(user.getSubscriptions() == null) {
             throw new SubscriptionException("Un abonnement doit être présent");
         }
-        var entity = mapUserDtoToUserEntity(user);
-        this.userRepository.save(entity);
+
+        this.userRepository.save(userMapper.toUserEntity(user));
     }
 
     @Override
@@ -70,26 +67,6 @@ public class UserServiceImpl implements UserService {
         this.userRepository.save(userEntity);
     }
 
-    private static List<UserDto> mapUserEntityToUsersDto(List<UserEntity> usersEntity) {
-        return usersEntity.stream().map(
-                user -> {
-                    var userDto = new UserDto();
-                    userDto.setName(user.getName());
-                    List<SubscriptionDto> subscriptionDto = new ArrayList<>();
-                    for (SubscriptionEntity subsEntity : user.getSubscriptions()) {
-                        var subDto = new SubscriptionDto();
-                        subDto.setName(subsEntity.getName());
-                        subDto.setPrice(subsEntity.getPrice());
-                        subDto.setFormule(subsEntity.getFormule());
-                        subDto.setCategory(subsEntity.getCategory());
-                        subscriptionDto.add(subDto);
-                    }
-                    userDto.setSubscriptions(subscriptionDto);
-                    return userDto;
-                }
-        ).toList();
-    }
-
     private static SubscriptionEntity mapSubDtoToEntity(SubscriptionDto subDto, UserEntity userEntity) {
         var subEntity = new SubscriptionEntity();
         subEntity.setName(subDto.getName());
@@ -99,24 +76,6 @@ public class UserServiceImpl implements UserService {
         subEntity.setUser(userEntity);
         return subEntity;
 
-    }
-
-    private static UserEntity mapUserDtoToUserEntity(UserDto userDto) {
-        var entity = new UserEntity();
-        entity.setName(userDto.getName());
-        var  subsEntity = userDto.getSubscriptions().stream().map(
-                sub -> {
-                    var subEntity = new SubscriptionEntity();
-                    subEntity.setName(sub.getName());
-                    subEntity.setPrice(sub.getPrice());
-                    subEntity.setFormule(sub.getFormule());
-                    subEntity.setCategory(sub.getCategory());
-                    subEntity.setUser(entity);
-                    return subEntity;
-                }
-        ).toList();
-        entity.setSubscriptions(subsEntity);
-        return entity;
     }
 
     private static void mapUpdateUser(UserDto user, UserEntity userEntity) {

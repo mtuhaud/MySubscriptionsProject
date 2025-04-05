@@ -100,13 +100,19 @@ public class UserServiceImplTest {
         userDto.setName("Polo");
         userDto.setSubscriptions(List.of(new SubscriptionDto()));
 
+        var userEntity = new UserEntity();
+        userEntity.setName("Polo");
+        userEntity.setSubscriptions(List.of(new SubscriptionEntity()));
+
+        when(userMapper.toUserEntity(userDto)).thenReturn(userEntity);
+
         userService.addUser(userDto);
 
         ArgumentCaptor<UserEntity> userEntityArgumentCaptor = ArgumentCaptor.forClass(UserEntity.class);
         verify(userRepository).save(userEntityArgumentCaptor.capture());
 
-        UserEntity userEntity = userEntityArgumentCaptor.getValue();
-        assertThat(userEntity.getName()).isEqualTo("Polo");
+        UserEntity userEntityCaptor = userEntityArgumentCaptor.getValue();
+        assertThat(userEntityCaptor.getName()).isEqualTo("Polo");
     }
 
     @Test
@@ -151,7 +157,18 @@ public class UserServiceImplTest {
         entityList.add(entity);
         entityList.add(entity2);
 
+        var dtoList = new ArrayList<UserDto>();
+        var userDto = new UserDto();
+        userDto.setName("Polo");
+        userDto.setSubscriptions(List.of(new SubscriptionDto()));
+        var userDto2 = new UserDto();
+        userDto2.setName("Toto");
+        userDto2.setSubscriptions(List.of(new SubscriptionDto()));
+        dtoList.add(userDto);
+        dtoList.add(userDto2);
+
         when(userRepository.findAll()).thenReturn(entityList);
+        when(userMapper.toUsersDto(entityList)).thenReturn(dtoList);
 
         var result = userService.getAllUsers();
         assertThat(result).isNotNull();
