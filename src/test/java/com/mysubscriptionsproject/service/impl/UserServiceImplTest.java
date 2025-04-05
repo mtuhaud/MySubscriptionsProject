@@ -6,6 +6,7 @@ import com.mysubscriptionsproject.dto.SubscriptionDto;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.entity.SubscriptionEntity;
 import com.mysubscriptionsproject.entity.UserEntity;
+import com.mysubscriptionsproject.mapper.UserMapper;
 import com.mysubscriptionsproject.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,9 +32,13 @@ public class UserServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserMapper userMapper;
+
     @Test
     void testGetUser() {
         var id = 1L;
+
         var entity = new UserEntity();
         entity.setId(id);
         entity.setName("Toto");
@@ -41,7 +46,15 @@ public class UserServiceImplTest {
         subscription.setName("Netflix");
         entity.setSubscriptions(Collections.singletonList(subscription));
 
+        var dto = new UserDto();
+        dto.setName("Toto");
+        var subscriptionDto = new SubscriptionDto();
+        subscriptionDto.setName("Netflix");
+        dto.setSubscriptions(Collections.singletonList(subscriptionDto));
+
+
         when(userRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(userMapper.toUserDto(entity)).thenReturn(dto);
 
         var result = userService.getUser(id);
 

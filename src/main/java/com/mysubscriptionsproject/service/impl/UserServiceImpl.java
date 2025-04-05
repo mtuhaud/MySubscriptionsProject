@@ -6,6 +6,7 @@ import com.mysubscriptionsproject.dto.SubscriptionDto;
 import com.mysubscriptionsproject.dto.UserDto;
 import com.mysubscriptionsproject.entity.SubscriptionEntity;
 import com.mysubscriptionsproject.entity.UserEntity;
+import com.mysubscriptionsproject.mapper.UserMapper;
 import com.mysubscriptionsproject.repository.UserRepository;
 import com.mysubscriptionsproject.service.UserService;
 import org.springframework.stereotype.Service;
@@ -18,8 +19,11 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    private final UserMapper userMapper;
+
+    public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
+        this.userMapper = userMapper;
     }
 
 
@@ -28,7 +32,7 @@ public class UserServiceImpl implements UserService {
         var entity = this.userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException(id));
 
-        return mapUserEntityToUserDto(entity);
+        return userMapper.toUserDto(entity);
     }
 
     @Override
@@ -66,26 +70,6 @@ public class UserServiceImpl implements UserService {
         this.userRepository.save(userEntity);
     }
 
-    // TODO: créer classe mapping et mettre en place MapStruct
-    private static UserDto mapUserEntityToUserDto(UserEntity entity) {
-        UserDto user = new UserDto();
-        user.setName(entity.getName());
-
-        var subs = entity.getSubscriptions().stream().map(
-                sub -> {
-                    var subDto = new SubscriptionDto();
-                    subDto.setName(sub.getName());
-                    subDto.setPrice(sub.getPrice());
-                    subDto.setFormule(sub.getFormule());
-                    subDto.setCategory(sub.getCategory());
-                    return subDto;
-                }
-        ).toList();
-
-        user.setSubscriptions(subs);
-
-        return user;
-    }
     private static List<UserDto> mapUserEntityToUsersDto(List<UserEntity> usersEntity) {
         return usersEntity.stream().map(
                 user -> {
