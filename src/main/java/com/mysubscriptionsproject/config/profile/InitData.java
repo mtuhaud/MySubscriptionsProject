@@ -51,7 +51,7 @@ public class InitData {
         userTwo.setName("Tim");
         var subscriptionsTim = new ArrayList<SubscriptionDto>();
         var subscriptionTimOne = new SubscriptionDto();
-        subscriptionTimOne.setName("Amazon Prim");
+        subscriptionTimOne.setName("Amazon Prime");
         subscriptionTimOne.setPrice(20);
         subscriptionTimOne.setFormule(Formule.PREMIUM);
         subscriptionTimOne.setCategory(Category.SERIES_AND_MOVIES);
