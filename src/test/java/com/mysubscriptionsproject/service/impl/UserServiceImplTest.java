@@ -75,10 +75,6 @@ public class UserServiceImplTest {
     void testUpdateUser() {
         var id = 1L;
         var userDto = new UserDto();
-        userDto.setName("newUserName");
-        var subscriptionDto = new SubscriptionDto();
-        subscriptionDto.setName("Deezer");
-        userDto.setSubscriptions(new ArrayList<>(Collections.singletonList(subscriptionDto)));
         var userEntity = new UserEntity();
         userEntity.setName("oldUserName");
         var subscriptionEntity = new SubscriptionEntity();
@@ -89,8 +85,9 @@ public class UserServiceImplTest {
 
         userService.updateUser(userDto, id);
 
-        assertThat(userDto.getName()).isEqualTo(userEntity.getName());
-        assertThat(userEntity.getSubscriptions().get(0).getName()).isEqualTo("Deezer");
+        verify(userRepository).findById(id);
+        assertThat(userEntity.getSubscriptions()).isEmpty();
+        verify(userMapper).updateUserEntityFromDto(userDto, userEntity);
         verify(userRepository).save(userEntity);
     }
 
