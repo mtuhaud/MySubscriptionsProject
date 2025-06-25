@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 
 @Component
-@Profile("dev")
+@Profile("!prod")
 public class InitData {
 
     private final UserService userService;
